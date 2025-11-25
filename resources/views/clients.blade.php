@@ -12,6 +12,23 @@
                 <div class="p-6 bg-white border-b border-gray-200">
                     <p class="mb-4 text-gray-800">Here are a list of your clients:</p>
 
+                    {{-- FLASH MESSAGE --}}
+                    @if(session('created_client'))
+                        @php($created = session('created_client'))
+                        <div class="mb-6 rounded border border-green-200 bg-green-50 p-4 text-sm text-green-800">
+                            <p class="font-semibold">Client created successfully.</p>
+                            <p class="mt-1">Client ID: <span class="font-mono">{{ $created['id'] }}</span></p>
+                            @if(! empty($created['secret']))
+                                <p class="mt-1">Client Secret:
+                                    <span class="font-mono">{{ $created['secret'] }}</span>
+                                </p>
+                                <p class="mt-1 text-xs text-green-900">
+                                    Store this secret now – it will not be shown again.
+                                </p>
+                            @endif
+                        </div>
+                    @endif
+
                     {{-- CLIENT CREATION FORM --}}
                     <form action="{{ route('dashboard.clients.create') }}" method="POST" class="space-y-4">
                         @csrf
@@ -36,9 +53,14 @@
 
                     {{-- SHOW EXISTING CLIENTS --}}
                     @foreach($clients as $client)
-                        <div class="py-3">
+                        <div class="py-3 border-b border-gray-100 last:border-0">
                             <h3 class="text-lg text-gray-700 font-semibold">{{ $client->name }}</h3>
-                            <p class="text-gray-600 text-sm">{{ $client->redirect }}</p>
+                            <p class="text-gray-600 text-sm">
+                                {{ collect($client->redirect_uris)->filter()->implode(', ') ?: 'No redirect URIs defined' }}
+                            </p>
+                            <p class="text-xs text-gray-500 mt-1">
+                                Grants: {{ implode(', ', $client->grant_types ?? []) }}
+                            </p>
                         </div>
                     @endforeach
 

@@ -20,16 +20,15 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // ✔ DO NOT USE Passport::routes() in Laravel 11/12
-
-        // Token expiration (optional)
+        Passport::enablePasswordGrant();
         Passport::tokensExpireIn(now()->addDays(15));
         Passport::refreshTokensExpireIn(now()->addDays(30));
 
-        // Scopes (optional)
-        // Passport::tokensCan([
-        //     'view-users' => 'View user data',
-        //     'edit-users' => 'Edit user data',
-        // ]);
+        Passport::tokensCan([
+            'view-posts' => 'Read posts data',
+            'manage-posts' => 'Create, update, and delete posts',
+        ]);
+
+        Passport::setDefaultScope(['view-posts']);
     }
 }

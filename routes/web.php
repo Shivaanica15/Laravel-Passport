@@ -1,9 +1,9 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
-use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Str;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
+use Laravel\Passport\ClientRepository;
 
 Route::get('/', function () {
     return view('welcome');
@@ -34,20 +34,23 @@ Route::middleware('auth')->group(function () {
     })->name('dashboard.clients');
 
     // Create new OAuth client
-    Route::post('/dashboard/clients/create', function (Request $request) {
-
-        $request->validate([
+    Route::post('/dashboard/clients/create', function (Request $request, ClientRepository $clients) {
+        $data = $request->validate([
             'name' => 'required|string|max:255',
             'redirect' => 'required|url',
         ]);
 
-        $request->user()->clients()->create([
-            'name' => $request->name,
-            'redirect' => $request->redirect,
-            'secret' => Str::random(40),
-        ]);
+        $client = $clients->createAuthorizationCodeGrantClient(
+            name: $data['name'],
+            redirectUris: [$data['redirect']],
+            confidential: true,
+            user: $request->user()
+        );
 
-        return back();
+        return back()->with('created_client', [
+            'id' => $client->id,
+            'secret' => $client->plainSecret,
+        ]);
     })->name('dashboard.clients.create');
 });
 
